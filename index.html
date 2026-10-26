@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EconNN · Redes Neuronales Informadas por la Economía en Mercados Laborales</title>
+<meta name="description" content="Red Neuronal Informada por la Economía (EconNN) que resuelve el modelo Diamond-Mortensen-Pissarides con rigidez salarial: entrenamiento, validación y resultados en tres escenarios.">
+<meta name="theme-color" content="#020409">
+<link rel="stylesheet" href="lib/katex.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="top">
+  <div class="brand">Econ<span>NN</span>://dmp</div>
+  <div class="links" id="nav-links">
+    <a href="#contexto">Contexto</a>
+    <a href="#modelo">Modelo DMP</a>
+    <a href="#econnn">EconNN</a>
+    <a href="#entrenamiento">Entrenamiento</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#laboratorio">Laboratorio</a>
+    <a href="#validacion">Validación</a>
+    <a href="#conclusiones">Conclusiones</a>
+    <a href="#anexo">Anexo</a>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header id="hero">
+  <canvas id="neural-bg"></canvas>
+  <div class="inner">
+    <span class="tag"><span class="dot"></span>TESIS · MAGÍSTER EN NEGOCIOS DIGITALES Y ANALÍTICA DE DATOS · 2026</span>
+    <h1><span class="grad">Redes Neuronales Informadas por la Economía</span><br>en mercados laborales</h1>
+    <p class="lead">Dinámica de desempleo, vacantes y <b>rigidez salarial</b> en el modelo Diamond-Mortensen-Pissarides, resuelto con una <b>EconNN</b>: una red neuronal que aprende cumpliendo las ecuaciones de la teoría económica, no ajustándose a datos.</p>
+    <p class="authors">Valentina Scarlet Jorquera Valdovinos · Ronal Matías Painén Meliñir<br><span class="muted">Profesor guía: Mauricio Manuel Tejada Guzmán · Facultad de Administración y Economía · Santiago, Chile</span></p>
+    <div class="kpis">
+      <div class="kpi"><div class="v">3</div><div class="l">escenarios de rigidez φ<sub>w</sub></div></div>
+      <div class="kpi"><div class="v" data-count="83331">0</div><div class="l">parámetros de la red</div></div>
+      <div class="kpi"><div class="v" data-count="100000">0</div><div class="l">puntos de test independiente</div></div>
+      <div class="kpi"><div class="v">×3.2</div><div class="l">más caída del desempleo con alta vs baja rigidez</div></div>
+    </div>
+    <div class="scroll-hint">▼ desliza para recorrer la investigación</div>
+  </div>
+</header>
+
+<!-- ===================== 01 CONTEXTO ===================== -->
+<section class="block reveal" id="contexto">
+  <div class="sec-head">
+    <div><div class="num">01 // EL PROBLEMA</div><h2>¿Por qué el empleo en Chile se recupera tan lento?</h2>
+    <p>Tras la pandemia, el mercado laboral chileno se ha recuperado más lento que el de otros países de la región. Esta investigación indaga si la <b>rigidez salarial</b> (salarios que se ajustan lentamente) explica esa persistencia.</p></div>
+  </div>
+  <div class="grid g3">
+    <div class="card stat"><div class="metric-big" style="color:var(--magenta)">9,6 %</div><div>tasa de desocupación, la más alta desde 2021</div><div class="small muted">989.400 personas desocupadas · INE (2026)</div></div>
+    <div class="card stat"><div class="metric-big" style="color:var(--cyan)">420.000</div><div>puestos de trabajo de déficit al terminar la crisis sanitaria (2023)</div><div class="small muted">Rau (2023)</div></div>
+    <div class="card stat"><div class="metric-big" style="color:var(--violet)">Shimer</div><div>“rompecabezas de volatilidad”: con salarios flexibles, el modelo DMP subestima cuánto fluctúan el desempleo y las vacantes</div><div class="small muted">Shimer (2005); Gertler &amp; Trigari (2009)</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card hl">
+      <h3><span class="ic">?</span> Pregunta de investigación</h3>
+      <p>¿En qué medida la rigidez salarial influye en la dinámica del desempleo, las vacantes y los salarios frente a shocks de productividad en el mercado laboral chileno?</p>
+      <h3 style="margin-top:.8rem"><span class="ic">H</span> Hipótesis</h3>
+      <p>La alta rigidez salarial sería el principal mecanismo que explica la persistencia del desempleo y la lentitud del ajuste laboral frente a shocks de productividad.</p>
+    </div>
+    <div class="card">
+      <h3><span class="ic">◆</span> Aporte metodológico</h3>
+      <p>Los estudios con redes neuronales sobre desempleo (incluidos los de Chile y Latinoamérica) se centran en <b>predecir</b> y funcionan como “cajas negras” sin fundamento teórico. Una <b>EconNN</b>, inspirada en las PINNs (Raissi et al., 2019; Scheidegger, 2026), lleva las ecuaciones del modelo DMP a su función de pérdida: cualquier trayectoria que viole la teoría se penaliza. El resultado es <b>interpretable</b>.</p>
+      <div class="pill-list"><span class="pill">Etapa 1 · calibración OCDE (este dashboard)</span><span class="pill">Etapa 2 · recalibración con datos de Chile 2017–2026</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 02 MODELO ===================== -->
+<section class="block reveal" id="modelo">
+  <div class="sec-head">
+    <div><div class="num">02 // MODELO ECONÓMICO</div><h2>DMP extendido con rigidez salarial</h2>
+    <p>En el DMP, emparejar trabajadores y vacantes toma tiempo y recursos. El sistema tiene tres variables endógenas, que responden a la productividad <i>a</i> (exógena) a lo largo del tiempo <i>t</i>.</p></div>
+  </div>
+  <div class="grid g3">
+    <div class="card var-card" style="--vc:var(--alta)">
+      <div class="vtag">BACKWARD-LOOKING</div><h3>Desempleo \(u\)</h3>
+      <div class="eq">$$\dot u=\lambda(1-u)-\chi\theta^{\alpha}u$$</div>
+      <p class="small">Entradas al desempleo (destrucción de empleo) menos salidas (empleos encontrados). Como es un <b>stock</b> que se acumula, se ajusta de forma gradual.</p>
+    </div>
+    <div class="card var-card" style="--vc:var(--base)">
+      <div class="vtag">FORWARD-LOOKING</div><h3>Tensión laboral \(\theta=v/u\)</h3>
+      <div class="eq">$$\dot\theta=\tfrac{\theta}{1-\alpha}\Big[(r+\lambda)-\tfrac{(a-w)\,q(\theta)}{c}\Big]$$</div>
+      <p class="small">Vacantes por desempleado. Las empresas abren vacantes según la ganancia esperada \(a-w\), así que \(\theta\) <b>salta</b> apenas llega información nueva (trayectoria de silla).</p>
+    </div>
+    <div class="card var-card" style="--vc:var(--baja)">
+      <div class="vtag">RIGIDEZ SALARIAL</div><h3>Salario \(w\)</h3>
+      <div class="eq">$$\dot w=\phi_w\,w\,\log\frac{w^{N}(\theta,a)}{w}$$</div>
+      <p class="small">El salario converge al salario de Nash \(w^N=(1-\beta)z+\beta(a+c\theta)\) a velocidad \(\phi_w\) (Gertler &amp; Trigari, 2009). <b>Un \(\phi_w\) bajo implica más rigidez.</b></p>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card">
+      <h3><span class="ic">∂</span> De ODE a PDE: lo que resuelve la red</h3>
+      <p class="small">La productividad revierte a su media con drift \(\mu(a)=-\phi_a\,a\log(a/\bar a)\). Al expresar cada variable como función \(f(a,t)\), la regla de la cadena convierte cada ecuación en una PDE:</p>
+      <div class="eq">$$\partial_t f+\mu(a)\,\partial_a f=\text{(lado derecho de la ecuación)}\quad\Rightarrow\quad R_f(a,t)$$</div>
+      <p class="small">El residuo \(R_f\) es la diferencia entre ambos lados. Si la red resolviera el modelo de forma perfecta, sería 0 en todo el dominio.</p>
+      <h3 style="margin-top:.8rem"><span class="ic">φ</span> Los 3 escenarios</h3>
+      <div class="sc-row">
+        <div><span class="sc-dot" style="background:var(--alta)"></span><b>Alta rigidez</b> · φ<sub>w</sub> = 0.033</div>
+        <div><span class="sc-dot" style="background:var(--base)"></span><b>Base</b> · φ<sub>w</sub> = 0.100</div>
+        <div><span class="sc-dot" style="background:var(--baja)"></span><b>Baja rigidez</b> · φ<sub>w</sub> = 0.333</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">◎</span> Estado estacionario (sin shocks)</h3>
+      <div class="tbl-wrap"><table id="tbl-ss"></table></div>
+      <details style="margin-top:.8rem"><summary>Ver calibración mensual (Tabla 1)</summary>
+        <div class="tbl-wrap" style="margin-top:.6rem"><table id="tbl-params"></table></div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 03 ECONNN ===================== -->
+<section class="block reveal" id="econnn">
+  <div class="sec-head">
+    <div><div class="num">03 // LA RED</div><h2>EconNN: una red que aprende la teoría</h2>
+    <p>La red recibe \((a,t)\) y entrega \((u,\theta,w)\). No usa datos etiquetados: su pérdida es el residuo de las tres PDE, calculado con diferenciación automática en miles de puntos del dominio.</p></div>
+  </div>
+  <div class="card hl" style="padding:.6rem;overflow-x:auto">
+    <svg id="net-svg" viewBox="0 0 1100 420" preserveAspectRatio="xMidYMid meet" aria-label="Diagrama de la red neuronal" style="min-width:640px"></svg>
+    <div class="legend-net" style="padding:.3rem .6rem .5rem">
+      <span>MLP · 6 capas ocultas × 128 neuronas · tanh · float64 · <b style="color:#fff">83.331 parámetros</b></span><span>Pasa el cursor sobre un nodo para ver sus conexiones</span>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card">
+      <h3><span class="ic">𝓛</span> Función de pérdida</h3>
+      <div class="eq">$$\mathcal L(\Theta)=\gamma_u\,\overline{R_u^2}+\gamma_\theta\,\overline{R_\theta^2}+\gamma_w\,\overline{R_w^2}$$</div>
+      <p class="small">Los pesos \(\gamma\) se ajustan solos con ReLoBRaLo para que ninguna ecuación domine. Las entradas se normalizan a ≈[−1, 1] y las salidas se expresan como razones respecto al estado estacionario, de modo que el equilibrio queda en (1, 1, 1).</p>
+    </div>
+    <div class="card">
+      <h3><span class="ic">⊢</span> Restricciones impuestas por construcción</h3>
+      <div class="eq">$$\tfrac{u}{\bar u}=e^{\,m(a)\frac{t}{T}N_u},\quad \tfrac{\theta}{\bar\theta}=e^{\,m(a)\left(1-\frac{t}{T}\right)N_\theta},\quad \tfrac{w}{\bar w}=e^{\,m(a)\frac{t}{T}N_w}$$</div>
+      <p class="small">con \(m(a)=\log(a/\bar a)/(5\sigma_a)\). La salida de la red se transforma de modo que la condición inicial (\(u,w\) en t=0), la terminal (\(\theta\) en t=T) y el estado estacionario sin shock se cumplen <b>exactamente</b> (error 0.0). Por eso los términos \(\mathcal L_{IC}\), \(\mathcal L_{TC}\) y \(\mathcal L_{SS}\) de la formulación original ya no hacen falta y la pérdida queda solo con las PDE.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 04 ENTRENAMIENTO ===================== -->
+<section class="block reveal" id="entrenamiento">
+  <div class="sec-head">
+    <div><div class="num">04 // ENTRENAMIENTO</div><h2>Currículum en 9 etapas</h2>
+    <p>Como \(\theta\) es inestable (trayectoria de silla), la red no se entrena de una vez sobre todo el dominio: primero se estabiliza y luego avanza de lo fácil a lo difícil. <b>Toca cada etapa</b> para ver qué hace, su gráfico y el error alcanzado.</p></div>
+    <div class="switch sc-switch" data-target="pipe"></div>
+  </div>
+  <div class="pipeline" id="pipeline"></div>
+  <div class="card hl"><div class="stage-detail" id="stage-detail"></div></div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card">
+      <h3><span class="ic">↘</span> Error fuera de muestra tras cada etapa</h3>
+      <div class="chart-box"><canvas id="ch-etapas"></canvas></div>
+      <p class="small muted">MAE de los residuos PDE en 12.000 puntos que nunca se usan para entrenar. Línea punteada: criterio &lt; 1e-4. ✕ = etapa cuyas trayectorias tenían signos económicos incorrectos.</p>
+    </div>
+    <div class="card">
+      <h3><span class="ic">≋</span> Registro paso a paso</h3>
+      <div class="var-tabs" id="log-tabs">
+        <button data-k="loss" class="on">Pérdida</button><button data-k="oos">Error OOS</button><button data-k="drift">Policy drift</button><button data-k="gamma">Pesos ReLoBRaLo</button>
+      </div>
+      <div class="chart-box"><canvas id="ch-log"></canvas></div>
+      <p class="small muted">Escenario de rigidez baja (es el único notebook que imprimió el log completo). El <i>policy drift</i> mide cuánto cambian las respuestas de la red entre controles; si tiende a 0, la solución se estabilizó.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 05 RESULTADOS ===================== -->
+<section class="block reveal" id="resultados">
+  <div class="sec-head">
+    <div><div class="num">05 // RESULTADOS</div><h2>Shock de productividad de +1 % según la rigidez salarial</h2>
+    <p>Los tres modelos entrenados se evalúan ante el mismo shock, que se disipa en el tiempo: \(a(t)=\bar a\,\exp\!\big(\log(1.01)\,e^{-\phi_a t}\big)\), durante 60 meses.</p></div>
+  </div>
+  <div class="card hl"><div class="fig-frame"><figure><img src="img/comp/comparacion_3_escenarios.png" alt="Comparación de los 3 escenarios" data-cap="Respuesta a un shock de productividad de +1% según rigidez salarial (EconNN)"></figure></div></div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card">
+      <div class="var-tabs" id="shock-tabs"><button data-m="theta0" class="on">θ impacto</button><button data-m="umin">u mínimo</button><button data-m="wmax">w máximo</button><button data-m="mes">Mes del pico</button></div>
+      <div class="chart-box short"><canvas id="ch-shock"></canvas></div>
+      <div class="tbl-wrap" style="margin-top:.8rem"><table id="tbl-esc"></table></div>
+      <p class="small muted">Desviaciones en % respecto al estado estacionario. Δ vs Base = diferencia máxima a lo largo de la trayectoria, en puntos porcentuales.</p>
+    </div>
+    <div class="card">
+      <h3><span class="ic">✎</span> Lectura económica</h3>
+      <ol class="reading" id="reading"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 06 LABORATORIO ===================== -->
+<section class="block reveal" id="laboratorio">
+  <div class="sec-head">
+    <div><div class="num">06 // LABORATORIO</div><h2>Prueba cualquier rigidez y cualquier shock</h2>
+    <p>Mueve φ<sub>w</sub> y el tamaño del shock. El navegador resuelve en vivo el modelo de referencia (método de disparo + RK4, equivalente a <code>solve_bvp</code>). Los rombos ◆ son los valores que obtuvo la <b>EconNN</b> entrenada.</p></div>
+  </div>
+  <div class="card hl">
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1.2rem;align-items:start">
+      <div class="ctrl">
+        <label><span>Rigidez salarial φ<sub>w</sub></span> <b id="lab-phi-v">0.100</b></label>
+        <input type="range" id="lab-phi" min="0.01" max="0.6" step="0.001" value="0.1">
+        <div class="pill-list"><button class="pill" data-phi="0.033">Alta 0.033</button><button class="pill" data-phi="0.1">Base 0.100</button><button class="pill" data-phi="0.333">Baja 0.333</button></div>
+        <label><span>Tamaño del shock δ</span> <b id="lab-delta-v">+1.0%</b></label>
+        <input type="range" id="lab-delta" min="-3" max="3" step="0.1" value="1">
+        <label style="justify-content:flex-start;gap:.5rem;cursor:pointer"><input type="checkbox" id="lab-ref" checked> Mostrar los 3 escenarios de referencia</label>
+        <div class="card" style="padding:.7rem;background:rgba(0,0,0,.35)"><dl class="kv" id="lab-stats"></dl></div>
+      </div>
+      <div>
+        <div class="var-tabs" id="lab-tabs"><button data-v="theta" class="on">Tensión θ</button><button data-v="u">Desempleo u</button><button data-v="w">Salario w</button><button data-v="a">Productividad a</button></div>
+        <div class="chart-box tall"><canvas id="ch-lab"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 07 VALIDACIÓN ===================== -->
+<section class="block reveal" id="validacion">
+  <div class="sec-head">
+    <div><div class="num">07 // VALIDACIÓN</div><h2>¿Podemos confiar en la red?</h2>
+    <p>Cuatro pruebas sobre los modelos congelados (su SHA-256 es idéntico antes y después, así que no hubo reentrenamiento): (1) residuos en 100.000 puntos nuevos, (2) error por región del dominio, (3) comparación con el solver numérico <code>solve_bvp</code> y (4) 12 shocks entre −3 % y +3 % que no se usaron para seleccionar el modelo.</p></div>
+    <div class="switch sc-switch" data-target="val"></div>
+  </div>
+  <div class="grid g4" id="val-kpis"></div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card"><h3><span class="ic">1</span> Residuos PDE en el test independiente</h3><div class="chart-box"><canvas id="ch-test"></canvas></div></div>
+    <div class="card"><h3><span class="ic">2</span> Error por región <span class="muted small" id="reg-sc"></span></h3><div class="tbl-wrap"><table id="tbl-reg"></table></div>
+      <figure style="margin-top:.7rem"><img loading="lazy" id="img-mapa" alt="Mapa de residuos"><figcaption>Mapa log10|R| en todo el dominio (a, t): las zonas amarillas son las de mayor error.</figcaption></figure></div>
+  </div>
+  <div class="grid g2" style="margin-top:1rem">
+    <div class="card"><h3><span class="ic">3</span> EconNN vs solve_bvp · shock +1 %</h3>
+      <figure><img loading="lazy" id="img-bvp" alt="EconNN vs solve_bvp"><figcaption>Línea continua: EconNN. Discontinua: solve_bvp.</figcaption></figure>
+      <div class="tbl-wrap" style="margin-top:.6rem"><table id="tbl-bvp"></table></div></div>
+    <div class="card"><h3><span class="ic">4</span> Robustez: shocks de −3 % a +3 %</h3>
+      <div class="var-tabs" id="rob-var"><button data-v="u" class="on">u</button><button data-v="theta">θ</button><button data-v="w">w</button></div>
+      <div class="chart-box short"><canvas id="ch-rob"></canvas></div>
+      <div class="ctrl" style="margin-top:.6rem"><label><span>Ver trayectoria del shock</span> <b id="rob-shock-v">+1.0%</b></label><input type="range" id="rob-shock" min="0" max="11" step="1" value="7"></div>
+      <figure style="margin-top:.5rem"><img loading="lazy" id="rob-img" alt="Shock robustez"><figcaption id="rob-cap"></figcaption></figure></div>
+  </div>
+  <div class="card" style="margin-top:1rem">
+    <h3><span class="ic">≈</span> Coherencia económica en simulación estocástica (500 trayectorias × 60 meses)</h3>
+    <div class="grid g2">
+      <div class="chart-box short"><canvas id="ch-diag"></canvas></div>
+      <div class="small">
+        <p><b>σ<sub>w</sub>/σ<sub>a</sub> &lt; 1:</b> el salario fluctúa menos que la productividad (inercia salarial).</p>
+        <p><b>Beveridge anti-horaria:</b> porcentaje de simulaciones en que la trayectoria (u, v) gira en sentido anti-horario, el patrón empírico clásico.</p>
+        <p><b>AC(1):</b> autocorrelación mensual, que mide la persistencia de u y θ.</p>
+        <figure><img loading="lazy" id="img-bev" alt="Curva de Beveridge"><figcaption>Curva de Beveridge de una trayectoria representativa.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 08 CONCLUSIONES ===================== -->
+<section class="block reveal" id="conclusiones">
+  <div class="sec-head"><div><div class="num">08 // CONCLUSIONES</div><h2>¿Se sostiene la hipótesis?</h2></div></div>
+  <div class="grid g2">
+    <div class="card hl"><h3>Lo que muestran los resultados</h3><ul id="concl-econ"></ul></div>
+    <div class="card"><h3>Alcance y próximos pasos</h3><ul id="concl-next"></ul></div>
+  </div>
+</section>
+
+<!-- ===================== 09 ANEXO ===================== -->
+<section class="block reveal" id="anexo">
+  <div class="sec-head">
+    <div><div class="num">09 // ANEXO</div><h2>Todas las figuras de los notebooks</h2>
+    <p>Archivo completo de los tres entrenamientos. Toca una imagen para ampliarla; usa ← → para navegar.</p></div>
+  </div>
+  <div class="gal-filters">
+    <div class="switch" id="gal-sc"></div>
+    <div class="switch" id="gal-cat"></div>
+  </div>
+  <div class="gal" id="gal"></div>
+  <details class="card" style="margin-top:1rem"><summary>Integridad de los modelos finales (SHA-256)</summary>
+    <div class="tbl-wrap" style="margin-top:.6rem"><table id="tbl-sha"></table></div></details>
+  <details class="card" style="margin-top:.6rem"><summary>Referencias principales</summary>
+    <ul class="small refs">
+      <li>Diamond, P. (1982); Mortensen, D. &amp; Pissarides, C. (1994); Pissarides, C. (2000). <i>Equilibrium Unemployment Theory</i>.</li>
+      <li>Shimer, R. (2005). The Cyclical Behavior of Equilibrium Unemployment and Vacancies. <i>AER</i>.</li>
+      <li>Gertler, M. &amp; Trigari, A. (2009). Unemployment Dynamics with Staggered Wage Setting. <i>JPE</i>.</li>
+      <li>Hagedorn, M. &amp; Manovskii, I. (2008). <i>AER</i>. · Fukui, M. (2020). MIT.</li>
+      <li>Raissi, M., Perdikaris, P. &amp; Karniadakis, G. (2019). Physics-Informed Neural Networks. <i>JCP</i>.</li>
+      <li>Fernández-Villaverde, J. (2025). Deep Learning for Solving Economic Models. NBER WP 34250.</li>
+      <li>Scheidegger, S. (2026). Deep Learning for Solving and Estimating Dynamic Models in Economics and Finance.</li>
+      <li>Bischof, R. &amp; Kraus, M. (2021). ReLoBRaLo. · Rau, T. (2023). Radiografía al Mercado Laboral Chileno Post Covid-19. · INE (2026).</li>
+    </ul></details>
+</section>
+
+<footer>
+  <div><b>Redes Neuronales Informadas por la Economía en Mercados Laborales</b> · Jorquera Valdovinos &amp; Painén Meliñir · 2026</div>
+  <div style="margin-top:.4rem">Calibración mensual: r=0.0042 · λ=0.03 · α=β=0.5 · z=0.4 · χ=0.47 · c=0.524 · φ<sub>a</sub>=0.0305 · σ<sub>a</sub>=0.007 · T=60</div>
+</footer>
+
+<div id="lb" role="dialog" aria-modal="true">
+  <button class="x" aria-label="Cerrar">✕</button>
+  <button class="nav prev" aria-label="Anterior">‹</button>
+  <div class="wrap"><img alt=""></div>
+  <div class="cap"></div>
+  <button class="nav next" aria-label="Siguiente">›</button>
+</div>
+
+<script src="lib/katex.min.js"></script>
+<script src="lib/auto-render.min.js"></script>
+<script src="lib/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
